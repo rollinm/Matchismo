@@ -25,5 +25,11 @@
     }
     return self;
 }
+-(Card *)drawRandomCard
+{
+    NSLog(@"calling draw random card");
+    return [super drawRandomCard];
+}
+
 
 @end
