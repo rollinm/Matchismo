@@ -9,6 +9,7 @@
 #import "CardGameViewController.h"
 #import "PlayingCardDeck.h"
 #import "PlayingCard.h"
+#import "CardMatchingGame.h"
 
 
 
@@ -16,7 +17,10 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *flipsLabel;
 @property (nonatomic) int flipCount;
-@property (nonatomic) PlayingCardDeck *myDeck;
+
+@property (strong, nonatomic) IBOutletCollection(UIButton) NSArray *cardButtons;
+@property (strong, nonatomic) CardMatchingGame *game;
+@property (weak, nonatomic) IBOutlet UILabel *scoreLabel;
 
 @end
 
@@ -28,34 +32,48 @@
     
 }
 
+-(CardMatchingGame *) game
+{
+    if (!_game) _game = [[CardMatchingGame alloc] initWithCardCount:self.cardButtons.count usingDeck:[[PlayingCardDeck alloc] init]];
+    return _game;
+}
+
+
+-(void) updateUI
+{
+    
+    for (UIButton *cardButton in self.cardButtons) {
+        Card *card = [self.game cardAtIndex:[self.cardButtons indexOfObject:cardButton]];
+        [cardButton setTitle:card.contents forState:UIControlStateSelected];
+        [cardButton setTitle:card.contents forState:UIControlStateSelected|UIControlStateDisabled];
+        cardButton.selected = card.isFaceUp;
+        cardButton.enabled = ! card.isUnplayable;
+        cardButton.alpha = card.isUnplayable ? 0.3 : 1.0;
+    }
+    
+    self.scoreLabel.text = [NSString stringWithFormat:@"Score: %d", self.game.score];
+    
+    
+}
+
+//-(void) setCardButtons:(NSArray *)cardButtons
+//{
+//    _cardButtons = cardButtons;
+//    for (UIButton *cardButton in cardButtons) {
+//        Card *card = [self.myDeck drawRandomCard];
+//        [cardButton setTitle:card.contents forState:UIControlStateSelected];
+//    }
+//}
+
 - (IBAction)flipCard:(UIButton *)sender {
     
 
     //sender.selected = !sender.isSelected;
     
-    
-    while (!self.myDeck) 
-    {
-        self.myDeck =  [[PlayingCardDeck alloc]init];
-    }
-    
-    if (sender.isSelected) {
-        sender.selected = NO;
-        Card *pulledCard = [self.myDeck drawRandomCard];
-        if (pulledCard) {
-            self.flipCount++;
-            NSLog(@"card = %@",pulledCard.contents); 
-            [sender setTitle:[pulledCard contents] forState:UIControlStateSelected];
-        } else {
-            [sender setEnabled:NO];
-        }
-    } else {
-        sender.selected = YES;
-    }
-    
-    
+    self.flipCount++;
 
-    
+    [self.game flipCardAtIndex:[self.cardButtons indexOfObject:sender]];
+    [self updateUI];
 }
 
 
